@@ -1,4 +1,4 @@
-MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014*)
+MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 3.4.2014*)
   IMPORT Files, Fonts;
 
   CONST (*scanner symbol classes*)
@@ -477,8 +477,8 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014*)
       IF x < 0.0 THEN x := -x; neg := TRUE ELSE neg := FALSE END ;
       x0 := x; UNPK(x0, e);
       IF e = 255 THEN WriteString(W, " NaN")
-      ELSE
-        REPEAT Write(W, " "); DEC(n) UNTIL n <= 14;
+      ELSE Write(W, " ");
+        WHILE n >= 15 DO Write(W, " "); DEC(n) END ;
         IF neg THEN Write(W, "-") ELSE Write(W, " ") END ;
         e := e * 77 DIV 256 - 6;
         IF e >= 0 THEN x := x / Ten(e) ELSE x := x * Ten(-e) END ;
@@ -487,7 +487,7 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014*)
         IF x >= 10.0E6 THEN x := 0.1*x; INC(e) END ;
         REPEAT d[i] := CHR(m MOD 10 + 30H); m := m DIV 10; INC(i) UNTIL m = 0;
         DEC(i); Write(W, d[i]); Write(W, ".");
-        IF i < n-6 THEN n := 0 ELSE n := 13-n END ;
+        IF i < n-7 THEN n := 0 ELSE n := 14 - n END ;
         WHILE i > n DO DEC(i); Write(W, d[i]) END ;
         Write(W, "E"); INC(e, 6);
         IF e < 0 THEN Write(W, "-"); e := -e ELSE Write(W, "+") END ;
@@ -507,7 +507,8 @@ MODULE Texts; (*JG 21.11.90 / NW 11.7.90 / 24.12.95 / 22.11.10 / 26.3.2014*)
       x := Ten(k) * x; m := FLOOR(x + 0.5);
       i := 0;
       REPEAT d[i] := CHR(m MOD 10 + 30H); m := m DIV 10; INC(i) UNTIL m = 0;
-      REPEAT Write(W, " "); DEC(n) UNTIL n <= i+3;
+      Write(W, " ");
+      WHILE n > i+3 DO  Write(W, " "); DEC(n) END ;
       IF neg THEN Write(W, "-"); DEC(n) ELSE Write(W, " ") END ;
       WHILE i > k DO DEC(i); Write(W, d[i]) END ;
       Write(W, ".");

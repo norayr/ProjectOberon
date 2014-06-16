@@ -1,4 +1,4 @@
-MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
+MODULE ORS; (* NW 19.9.93 / 1.4.2014  Scanner in Oberon-07*)
   IMPORT SYSTEM, Texts, Oberon;
 
 (* Oberon Scanner does lexical analysis. Input is Oberon-Text, output is
@@ -10,7 +10,7 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
   If Get delivers ident, then the identifier (a string) is in variable id, if int or char
   in ival, if real in rval, and if string in str (and slen) *)
   
-  CONST IdLen* = 32; WS = 4; (*Word size*)
+  CONST IdLen* = 32;
     NKW = 34;  (*nof keywords*)
     maxExp = 38; stringBufSize = 256;
   
@@ -29,7 +29,6 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
     else* = 55; elsif* = 56; until* = 57; return* = 58;
     array* = 60; record* = 61; pointer* = 62; const* = 63; type* = 64;
     var* = 65; procedure* = 66; begin* = 67; import* = 68; module* = 69;
-    eof = 70;
 
   TYPE Ident* = ARRAY IdLen OF CHAR;
 
@@ -124,7 +123,7 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
   END Ten;
 
   PROCEDURE Number(VAR sym: INTEGER);
-    CONST max = 2147483647 (*2^31*); maxM = 16777216; (*2^24*)
+    CONST max = 2147483647 (*2^31 - 1*);
     VAR i, k, e, n, s, h: LONGINT; x: REAL;
       d: ARRAY 16 OF INTEGER;
       negE: BOOLEAN;
@@ -149,24 +148,17 @@ MODULE ORS; (* NW 19.9.93 / 10.10.2013  Scanner in Oberon-07*)
       IF ch = "." THEN (*double dot*) ch := 7FX;  (*decimal integer*)
         REPEAT
           IF d[i] < 10 THEN
-            h := k*10 + d[i];
-            IF h < max THEN k := h ELSE Mark("too large") END
+            IF k <= (max-d[i]) DIV 10 THEN k := k *10 + d[i] ELSE Mark("too large"); k := 0 END
           ELSE Mark("bad integer")
           END ;
           INC(i)
         UNTIL i = n;
         sym := int; ival := k
       ELSE (*real number*) x := 0.0; e := 0;
-        REPEAT (*integer part*) h := k*10 + d[i];
-          IF h < maxM THEN k := h ELSE Mark("too many digits") END ;
-          INC(i)
-        UNTIL i = n;
-        WHILE (ch >= "0") & (ch <= "9") DO (*fraction*)
-          h := k*10 + ORD(ch) - 30H;
-          IF h < maxM THEN k := h ELSE Mark("too many digits*") END ;
-          DEC(e); Texts.Read(R, ch)
+        REPEAT  (*integer part*) x := x * 10.0 + FLT(d[i]); INC(i) UNTIL i = n;
+        WHILE (ch >= "0") & (ch <= "9") DO  (*fraction*)
+          x := x * 10.0 + FLT(ORD(ch) - 30H); DEC(e); Texts.Read(R, ch)
         END ;
-        x := FLT(k);
         IF (ch = "E") OR (ch = "D") THEN  (*scale factor*)
           Texts.Read(R, ch); s := 0; 
           IF ch = "-" THEN negE := TRUE; Texts.Read(R, ch)
