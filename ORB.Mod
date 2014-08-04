@@ -1,4 +1,4 @@
-MODULE ORB;   (*NW 7.6.2014   in Oberon-07*)
+MODULE ORB;   (*NW 25.6.2014   in Oberon-07*)
   IMPORT Files, ORS;
   (*Definition of data types Object and Type, which together form the data structure
     called "symbol table". Contains procedures for creation of Objects, and for search:
@@ -193,7 +193,7 @@ MODULE ORB;   (*NW 7.6.2014   in Oberon-07*)
         IF obj # NIL THEN T := obj.type   (*type object found in object list of mod*)
         ELSE (*insert new type object in object list of mod*)
           NEW(obj); obj.name := name; obj.class := Typ; obj.next := mod.dsc; mod.dsc := obj; obj.type := t;
-          t.mno := mod.lev; T := t
+          t.mno := mod.lev; t.typobj := obj; T := t
         END ;
         typtab[ref] := T
       END
@@ -272,8 +272,7 @@ MODULE ORB;   (*NW 7.6.2014   in Oberon-07*)
     ELSE obj := t.typobj;
       IF obj # NIL THEN Write(R, Ref); t.ref := Ref; INC(Ref) ELSE (*anonymous*) Write(R, 0) END ;
       Write(R, t.form);
-      IF t.form = Pointer THEN
-        IF t.base.ref > 0 THEN Write(R, -t.base.ref) ELSE OutType(R, t.base) END
+      IF t.form = Pointer THEN OutType(R, t.base)
       ELSIF t.form = Array THEN OutType(R, t.base); Files.WriteNum(R, t.len); Files.WriteNum(R, t.size)
       ELSIF t.form = Record THEN
         IF t.base # NIL THEN OutType(R, t.base) ELSE OutType(R, noType) END ;

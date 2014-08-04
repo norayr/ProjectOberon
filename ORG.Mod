@@ -1,4 +1,4 @@
-MODULE ORG; (* NW  25.5.2014  code generator in Oberon-07 for RISC*)
+MODULE ORG; (* NW  24.6.2014  code generator in Oberon-07 for RISC*)
   IMPORT SYSTEM, Files, ORS, ORB;
   (*Code generator for Oberon compiler for RISC processor.
      Procedural interface to Parser OSAP; result in array "code".
@@ -633,21 +633,21 @@ MODULE ORG; (* NW  25.5.2014  code generator in Oberon-07 for RISC*)
   BEGIN loadAdr(x); loadAdr(y);
     IF (x.type.form = ORB.Array) & (x.type.len > 0) THEN
       IF y.type.len >= 0 THEN 
-        IF x.type.len >= y.type.len THEN Put1(Mov, RH, 0, (y.type.size+3) DIV 4)
+        IF x.type.len >= y.type.len THEN Put1a(Mov, RH, 0, (y.type.size+3) DIV 4)
         ELSE ORS.Mark("source array too long")
         END
       ELSE (*y is open array*)
         Put2(Ldr, RH, SP, y.a+4); s := y.type.base.size;  (*element size*)
         pc0 := pc; Put3(BC, EQ, 0);
         IF s = 1 THEN Put1(Add, RH, RH, 3); Put1(Asr, RH, RH, 2)
-        ELSIF s # 4 THEN Put1(Mul, RH, RH, s DIV 4)
+        ELSIF s # 4 THEN Put1a(Mul, RH, RH, s DIV 4)
         END ;
         IF check THEN
-          Put1(Mov, RH+1, 0, (x.type.size+3) DIV 4); Put0(Cmp, RH+1, RH, RH+1); Trap(GT, 3)
+          Put1a(Mov, RH+1, 0, (x.type.size+3) DIV 4); Put0(Cmp, RH+1, RH, RH+1); Trap(GT, 3)
         END ;
         fix(pc0, pc + 5 - pc0)
       END
-    ELSIF x.type.form = ORB.Record THEN Put1(Mov, RH, 0, x.type.size DIV 4)
+    ELSIF x.type.form = ORB.Record THEN Put1a(Mov, RH, 0, x.type.size DIV 4)
     ELSE ORS.Mark("inadmissible assignment")
     END ;
     Put2(Ldr, RH+1, y.r, 0); Put1(Add, y.r, y.r, 4);
@@ -675,7 +675,7 @@ MODULE ORG; (* NW  25.5.2014  code generator in Oberon-07 for RISC*)
     VAR xmd: INTEGER;
   BEGIN xmd := x.mode; loadAdr(x);
     IF (ftype.form = ORB.Array) & (ftype.len < 0) THEN (*open array*)
-      IF x.type.len >= 0 THEN Put1(Mov, RH, 0, x.type.len) ELSE  Put2(Ldr, RH, SP, x.a+4+frame) END ;
+      IF x.type.len >= 0 THEN Put1a(Mov, RH, 0, x.type.len) ELSE  Put2(Ldr, RH, SP, x.a+4+frame) END ;
       incR
     ELSIF ftype.form = ORB.Record THEN
       IF xmd = ORB.Par THEN Put2(Ldr, RH, SP, x.a+4+frame); incR ELSE loadTypTagAdr(x.type) END
@@ -1009,7 +1009,7 @@ MODULE ORG; (* NW  25.5.2014  code generator in Oberon-07 for RISC*)
 
   PROCEDURE Header*;
   BEGIN entry := pc*4;
-    IF version = 0 THEN code[0] := 0E7000000H-1 + pc; Put1(Mov, SB, 0, VarOrg0); Put1(Mov, SP, 0, StkOrg0)  (*RISC-0*)
+    IF version = 0 THEN code[0] := 0E7000000H-1 + pc; Put1a(Mov, SB, 0, VarOrg0); Put1a(Mov, SP, 0, StkOrg0)  (*RISC-0*)
     ELSE Put1(Sub, SP, SP, 4); Put2(Str, LNK, SP, 0); invalSB
     END
   END Header;
